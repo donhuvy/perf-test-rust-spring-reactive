@@ -11,22 +11,26 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.reactive.function.server.*;
-import reactor.core.publisher.Flux;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.BitSet;
-import java.util.List;
-import java.util.UUID;
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
+import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 
-import static org.springframework.http.ResponseEntity.ok;
-import static org.springframework.web.reactive.function.server.RequestPredicates.*;
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+@Repository
+interface EmployeeRepository extends ReactiveCrudRepository<Employee, Long> {
+
+}
 
 @SpringBootApplication
 public class PerfTestApplication {
+
     private final Logger logger = LoggerFactory.getLogger(PerfTestApplication.class);
+
     public static void main(String[] args) {
         SpringApplication.run(PerfTestApplication.class, args);
     }
@@ -54,10 +58,12 @@ class TestHandler {
                 .andRoute(GET("/{id}").and(accept(json)), this::findById)
                 .andRoute(POST("/").and(accept(json)), this::createEmployee);
     }
+
     public Mono<ServerResponse> findAll(ServerRequest request) {
         var result = employeeRepository.findAll();
         return ServerResponse.ok().contentType(json).body(result, Employee.class);
     }
+
     public Mono<ServerResponse> findById(ServerRequest request) {
         var id = request.pathVariable("id");
         var result = employeeRepository.findById(Long.valueOf(id));
@@ -71,10 +77,6 @@ class TestHandler {
     }
 }
 
-@Repository
-interface EmployeeRepository extends ReactiveCrudRepository<Employee, Long> {
-
-}
-
 record Employee(@Id Long id, String name) {
+
 }
